@@ -146,7 +146,10 @@ class PostgresSource(SQLAlchemySource):
     def get_inspectors(self) -> Iterable[Inspector]:
         # This method can be overridden in the case that you want to dynamically
         # run on multiple databases.
-        url = self.config.get_sql_alchemy_url()
+        # For listing the databases, we always connect to the postgres database, which is guaranteed to exist.
+        # Otherwise, postgres will try to connect to the same database as the username, which might not
+        # exist and will cause the ingestion to fail.
+        url = self.config.get_sql_alchemy_url(database="postgres")
         logger.debug(f"sql_alchemy_url={url}")
         engine = create_engine(url, **self.config.options)
         with engine.connect() as conn:
